@@ -1,12 +1,11 @@
 # coding: utf-8
 
 from __future__ import print_function, unicode_literals
-import codecs, subprocess
+import codecs, subprocess, random
 from collections import Counter
 from itertools import islice
 from nltk.tag import untag
-from nltk.parse import DependencyEvaluator
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 from hazm import *
 from hazm.Chunker import tree2brackets
 from hazm.PeykareReader import coarse_pos_e as peykare_coarse_pos_e
@@ -14,11 +13,12 @@ from hazm.DadeganReader import coarse_pos_e as dadegan_coarse_pos_e
 
 
 def create_words_file(dic_file='resources/persian.dic', output='hazm/data/words.dat'):
-	""" prepares list of persian word words from [Virastyar](https://sourceforge.net/projects/virastyar/) dic file.
-	"""
+	""" prepares list of persian word words from [Virastyar](https://sourceforge.net/projects/virastyar/) dic file. """
 
-	dic_words = sorted([line.split('\t')[0] for line in codecs.open(dic_file, encoding='utf8')])
-	print(*dic_words, sep='\n', file=codecs.open(output, 'w', 'utf8'))
+	dic_words = [line.strip().replace(', ', ',').split('\t') for line in codecs.open(dic_file, encoding='utf-8') if len(line.strip().split('\t')) == 3]
+	dic_words = filter(lambda item: not item[2].startswith('V') and 'NEG' not in item[2], dic_words)
+	dic_words = ['\t'.join(item) for item in sorted(dic_words, key=lambda item: item[0])]
+	print(*dic_words, sep='\n', file=codecs.open(output, 'w', 'utf-8'))
 	print(output, 'created')
 
 
@@ -50,6 +50,23 @@ def evaluate_lemmatizer(conll_file='resources/train.conll', peykare_root='corpor
 		counter = Counter(missed)
 		for item, count in sorted(counter.items(), key=lambda t: t[1], reverse=True):
 			print(count, item, file=output)
+
+
+def evaluate_normalizer(tnews_root='corpora/tnews'):
+
+	tnews = TNewsReader(root=tnews_root)
+	normalizer = Normalizer(persian_style=False, persian_numbers=False, remove_diacritics=False, token_based=False, affix_spacing=True)
+	token_normalizer = Normalizer(persian_style=False, persian_numbers=False, remove_diacritics=False, token_based=True, affix_spacing=False)
+
+	with codecs.open('resources/normalized.txt', 'w', 'utf8') as output1, codecs.open('resources/normalized_token_based.txt', 'w', 'utf8') as output2:
+		random.seed(0)
+		for text in tnews.texts():
+			if random.randint(0, 100) != 0:
+				continue
+
+			for sentence in sent_tokenize(text):
+				print(normalizer.normalize(sentence), '\n', file=output1)
+				print(token_normalizer.normalize(sentence), '\n', file=output2)
 
 
 def evaluate_informal_normalizer(sentipars_root='corpora/sentipers'):

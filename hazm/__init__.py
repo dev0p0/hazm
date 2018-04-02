@@ -1,6 +1,7 @@
 
 from .WordTokenizer import WordTokenizer
 from .SentenceTokenizer import SentenceTokenizer
+from .TokenSplitter import TokenSplitter
 from .HamshahriReader import HamshahriReader
 from .PersicaReader import PersicaReader
 from .BijankhanReader import BijankhanReader
@@ -21,9 +22,7 @@ from .Chunker import Chunker, RuleBasedChunker, tree2brackets
 from .DependencyParser import DependencyParser, MaltParser, TurboParser
 
 
-from .utils import default_stopwords
-from nltk.corpus import WordListCorpusReader
-stopwords = WordListCorpusReader('', [default_stopwords], encoding='utf8')
+from .utils import words_list, stopwords_list
 
 
 def sent_tokenize(text):

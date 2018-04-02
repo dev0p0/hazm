@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 import re, codecs
-from .utils import default_verbs
+from .utils import words_list, default_words, default_verbs
 from nltk.tokenize.api import TokenizerI
 
 
@@ -11,11 +11,16 @@ class WordTokenizer(TokenizerI):
 	>>> tokenizer = WordTokenizer()
 	>>> tokenizer.tokenize('این جمله (خیلی) پیچیده نیست!!!')
 	['این', 'جمله', '(', 'خیلی', ')', 'پیچیده', 'نیست', '!!!']
+
+	>>> tokenizer.tokenize('نسخه 0.5 در ساعت 22:00 تهران،1396')
+	['نسخه', '0.5', 'در', 'ساعت', '22:00', 'تهران', '،', '1396']
 	"""
 
-	def __init__(self, verbs_file=default_verbs, join_verb_parts=True):
+	def __init__(self, words_file=default_words, verbs_file=default_verbs, join_verb_parts=True):
 		self._join_verb_parts = join_verb_parts
-		self.pattern = re.compile(r'([؟!\?]+|[:\.،؛»\]\)\}"«\[\(\{])')
+		self.pattern = re.compile(r'([؟!\?]+|[\d\.:]+|[:\.،؛»\]\)\}"«\[\(\{])')
+
+		self.words = {item[0]: (item[1], item[2]) for item in words_list(default_words)}
 
 		if join_verb_parts:
 			self.after_verbs = set([
